@@ -45,25 +45,58 @@
 (defun pcomplete/apt-get ()
   "Completion rules for the `apt-get' command."
   (let ((pcomplete-help "(apt-get)Invoking APT-GET"))
+    (pcomplete-opt (pcmpl-apt-get-options))
     (pcomplete-here* (pcmpl-apt-get-commands))
     (cond ((or (pcomplete-test "remove")
 	       (pcomplete-test "autoremove")
 	       (pcomplete-test "purge"))
 	   (setq pcomplete-help "(apt-get)Removing packages")
-	   (while (pcomplete-here (pcmpl-apt-get-installed-packages)))))))
+	   (while (pcomplete-here
+		   (pcmpl-apt-get-installed-packages))))
+	  ((pcomplete-test "source")
+	   (setq pcomplete-help "(apt-get)Downloading sources")
+	   (while (pcomplete-here
+		   (pcmpl-apt-get-source-packages))))
+	  (t
+	   (while (pcomplete-here
+		   (pcmpl-apt-get-installable-packages)))))))
 
 (defun pcmpl-apt-get-commands ()
   "Return a list of available APT-GET commands."
   (pcomplete-uniqify-list
-   (list "install" "remove" "autoremove" "purge" "source" "build" "dep" "changelog" "download")))
+   '("update" "upgrade" "dselect"-"upgrade" "dist"-"upgrade" "install"
+     "remove" "purge" "source" "build"-"dep" "check" "download"
+     "clean" "autoclean" "autoremove" "changelog")))
 
 (defun pcmpl-apt-get-installed-packages ()
   "Return a list of all packages installed through apt."
-  (split-string
-   (shell-command-to-string
-    (concat "grep -A 1 \"Package: $1\" /var/lib/dpkg/status | "
-	  "grep -B 1 -Ee \"ok installed|half-installed|unpacked|half-configured|config-files\" -Ee \"^Essential: yes\" | "
-	  "grep \"Package: $1\" | cut -d\\  -f2"))))
+  (pcmpl-apt-get-shell-command-to-list
+    (concat
+     "grep -A 1 \"Package: \" /var/lib/dpkg/status | "
+     "grep -B 1 -Ee "
+     "\"ok installed|half-installed|unpacked|half-configured|"
+     "config-files\" -Ee \"^Essential: yes\" | "
+     "grep \"Package: \" | cut -d\\  -f2")))
+
+(defun pcmpl-apt-get-source-packages ()
+  (append
+   (pcmpl-apt-get-shell-command-to-list
+     "apt-cache --no-generate pkgnames 2>/dev/null | head -n 2")
+   (pcmpl-apt-get-shell-command-to-list
+     (concat
+      "apt-cache dumpavail | "
+      "grep \"^Source: \" | sort -u | cut -f2 -d' ' | head -n 2"))))
+
+(defun pcmpl-apt-get-installable-packages ()
+  (pcmpl-apt-get-shell-command-to-list
+   "apt-cache --no-generate pkgnames 2>/dev/null"))
+
+(defun pcmpl-apt-get-options ()
+  "sqdyfmubVvh")
+
+(defun pcmpl-apt-get-shell-command-to-list (command)
+  (pcomplete-uniqify-list
+   (split-string (shell-command-to-string command))))
 
 (provide 'pcomplete-apt-get)
 
