@@ -71,8 +71,8 @@
 (defun pcmpl-apt-get-commands ()
   "Return a list of available APT-GET commands."
   (pcomplete-uniqify-list
-   '("update" "upgrade" "dselect"-"upgrade" "dist"-"upgrade" "install"
-     "remove" "purge" "source" "build"-"dep" "check" "download"
+   (list "update" "upgrade" "dselect-upgrade" "dist-upgrade" "install"
+     "remove" "purge" "source" "build-dep" "check" "download"
      "clean" "autoclean" "autoremove" "changelog")))
 
 (defun pcmpl-apt-get-installed-packages ()
