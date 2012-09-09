@@ -32,4 +32,4 @@
    ((pcomplete-match "checkout" 1)
     (pcomplete-here* (pcmpl-git-get-refs "heads")))))
 
-(provide pcomplete-git)
+(provide 'pcmpl-git)
